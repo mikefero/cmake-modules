@@ -61,6 +61,12 @@ IF(WIN32)
   FIND_PACKAGE(PythonInterp REQUIRED)
   GET_FILENAME_COMPONENT(PYTHON_PATH ${PYTHON_EXECUTABLE} PATH)
   FILE(TO_NATIVE_PATH ${PYTHON_PATH} PYTHON_PATH)
+
+  # Make sure the environmental configure script is available
+  INCLUDE(Windows-MSVC-EnvironmentScript)
+  IF(NOT VCVARSALL_SCRIPT)
+    MESSAGE(FATAL_ERROR "Visual Studio environment script is required to build libuv")
+  ENDIF(NOT VCVARSALL_SCRIPT)
 ENDIF(WIN32)
 
 ##
@@ -126,6 +132,13 @@ ENDIF(BUILD_SHARED_LIBS)
 
 # Create configure, build and make commands for supported platforms
 IF(WIN32)
+# Determine if debug or release configuration should be used
+  IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    SET(LIBUV_BUILD_TYPE_ARGUMENT "debug")
+  ELSE(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    SET(LIBUV_BUILD_TYPE_ARGUMENT "release")
+  ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+
   # Determine which architecture to build libuv
   IF(VCVARSALL_ARCHITECTURE STREQUAL "x86")
     SET(LIBUV_TARGET_ARCH "x86")
@@ -148,9 +161,10 @@ IF(WIN32)
   FILE(WRITE ${LIBUV_MAKE_SCRIPT} "@REM Generated make script for libuv\r\n")
   FILE(APPEND ${LIBUV_MAKE_SCRIPT} "@ECHO OFF\r\n")
   FILE(APPEND ${LIBUV_MAKE_SCRIPT} "SETLOCAL ENABLEDELAYEDEXPANSION\r\n")
+  FILE(APPEND ${LIBUV_MAKE_SCRIPT} "CALL \"${VCVARSALL_SCRIPT}\" ${VCVARSALL_ARCHITECTURE}\r\n")
   FILE(APPEND ${LIBUV_MAKE_SCRIPT} "TYPE vcbuild.bat | FINDSTR /V /C:\"if defined WindowsSDKDir goto select-target\" | FINDSTR /V /C:\"if defined VCINSTALLDIR goto select-target\" > vcbuild-modified.bat\r\n")
   FILE(APPEND ${LIBUV_MAKE_SCRIPT} "SET PATH=${PYTHON_PATH};%PATH%\r\n")
-  FILE(APPEND ${LIBUV_MAKE_SCRIPT} "CALL vcbuild-modified.bat release ${LIBUV_TARGET_ARCH} ${LIBUV_LIBRARY_TYPE_ARGUMENT}\r\n")
+  FILE(APPEND ${LIBUV_MAKE_SCRIPT} "CALL vcbuild-modified.bat ${LIBUV_BUILD_TYPE_ARGUMENT} ${LIBUV_TARGET_ARCH} ${LIBUV_LIBRARY_TYPE_ARGUMENT}\r\n")
   FILE(APPEND ${LIBUV_MAKE_SCRIPT} "IF NOT %ERRORLEVEL% EQU 0 EXIT /B 1\r\n")
   FILE(APPEND ${LIBUV_MAKE_SCRIPT} "ENDLOCAL\r\n")
   FILE(APPEND ${LIBUV_MAKE_SCRIPT} "EXIT /B\r\n")
