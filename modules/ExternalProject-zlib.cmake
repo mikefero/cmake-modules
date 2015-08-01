@@ -59,7 +59,7 @@ IF(WIN32)
   IF(NOT MSVC)
     MESSAGE(FATAL_ERROR "Visual Studio is required to build zlib")
   ENDIF(NOT MSVC)
-  
+
   # Make sure the environmental configure script is available
   INCLUDE(Windows-MSVC-EnvironmentScript)
   IF(NOT VCVARSALL_SCRIPT)

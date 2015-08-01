@@ -1,0 +1,93 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+# Inline provision script
+CMAKE_MODULES_PROVISION_SCRIPT = <<EOF
+#!/bin/bash
+
+# Install package updates
+printf "Installing System Packages ...\n"
+apt-get update -y
+apt-get install autoconf cmake g++ git libtool make texlive-extra-utils -y
+
+# Update the permissions for building with the vagrant user
+printf "Configuring build directory ...\n"
+mkdir /usr/local/cmake-modules/build
+pushd /usr/local/cmake-modules/build > /dev/null
+for directory in $(find /usr/local/cmake-modules/src/test -mindepth 1 -maxdepth 1 -type d);
+do
+  test_directory=$(basename ${directory})
+  if [[ "$(basename ${directory})" != ".vagrant" && "$(basename ${directory})" != "build" ]]
+  then
+    mkdir $(basename ${directory})
+  fi
+done
+popd > /dev/null
+chown -R vagrant:vagrant /usr/local/cmake-modules
+
+# Create the build script for the CMake modules
+cat > /home/vagrant/build-cmake-modules.sh << CMAKE_MODULES_BUILD_SCRIPT_EOF
+#!/bin/bash
+
+for directory in \\$(find /usr/local/cmake-modules/build -mindepth 1 -maxdepth 1 -type d);
+do
+  test_directory=\\$(basename \\${directory})
+  printf "\\tBuilding \\${test_directory} ...\\n"
+  pushd \\${directory} > /dev/null
+  cmake ../../src/test/\\${test_directory}
+  cmake --build .
+  popd > /dev/null
+done
+CMAKE_MODULES_BUILD_SCRIPT_EOF
+
+# Build the CMake module tests
+printf "Building the CMake module tests ...\n"
+sudo su vagrant << VAGRANT_USER_EOF
+bash /home/vagrant/build-cmake-modules.sh
+VAGRANT_USER_EOF
+EOF
+
+##
+# Configure a Virtual Machine (VM) for building the CMake modules with the
+# following settings:
+#
+#     - 2GB of RAM
+#     - 32MB of Video RAM
+#     - 2 cores (CPUs)
+#     - Hostname: cmake-modules
+#     - Username: vagrant
+#     - Password: vargrant
+#     - 1 Network Interfaces Cards (NICs)
+#       + IP: 192.168.33.333
+##
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # Create Ubuntu 14.04 LTS VM
+  config.vm.box = "ubuntu/trusty64"
+
+  # Define the hostname and IP address
+  config.vm.define "cmake_modules" do |cmake_modules|
+    cmake_modules.vm.hostname = "cmake-modules"
+    cmake_modules.vm.network "private_network", ip: "192.168.33.333"
+    cmake_modules.vm.synced_folder "..", "/usr/local/cmake-modules/src"
+  end
+
+  # Prepare/Provision the VM
+  config.vm.provision :shell do |root_provision|
+    root_provision.privileged = true
+    root_provision.inline = CMAKE_MODULES_PROVISION_SCRIPT
+  end
+
+  # VM parameters for the CMake modules build machine
+  config.vm.provider :virtualbox do |provider|
+    provider.name = "cmake-modules"
+    provider.customize ["modifyvm", :id, "--memory", "2048"]
+    provider.customize ["modifyvm", :id, "--vram", "32"]
+    provider.customize ["modifyvm", :id, "--cpus", "2"]
+    provider.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    provider.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+    provider.customize ["modifyvm", :id, "--nictype1", "virtio"]
+  end
+end
