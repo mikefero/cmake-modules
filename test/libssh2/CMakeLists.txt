@@ -1,5 +1,5 @@
 ##
-# Test libuv External Project CMake File
+# Test libssh2 External Project CMake File
 # Copyright (C) 2015 Michael Fero
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0)
-PROJECT(libuv)
-SET(PROJECT_DISPLAY_NAME "ExternalProject-libuv Test")
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
+PROJECT(libssh2)
+SET(PROJECT_DISPLAY_NAME "ExternalProject-libssh2 Test")
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ##
@@ -36,12 +36,12 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_MODULE_DIR})
 ##
 # Include CMake modules
 ##
-INCLUDE(ExternalProject-libuv)
+INCLUDE(ExternalProject-libssh2)
 
 SET(GENERATED_SOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/main.cpp)
 FILE(REMOVE ${GENERATED_SOURCE_FILE})
 FILE(WRITE ${GENERATED_SOURCE_FILE} "int main () { return 0; }")
 
 ADD_EXECUTABLE(${PROJECT_NAME} ${GENERATED_SOURCE_FILE})
-ADD_DEPENDENCIES(${PROJECT_NAME} ${LIBUV_LIBRARY_NAME})
+ADD_DEPENDENCIES(${PROJECT_NAME} ${OPENSSL_LIBRARY_NAME} ${LIBSSH2_LIBRARY_NAME})
 
