@@ -133,7 +133,7 @@ IF(NOT GOOGLE_TEST_FOUND)
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DCMAKE_INSTALL_PREFIX=${GOOGLE_TEST_INSTALL_DIR}
       -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-      -Dgtest_force_shared_crt=OFF
+      -Dgtest_force_shared_crt=ON
       -Dgtest_build_tests=OFF
       -Dgtest_build_samples=OFF
       -Dgtest_disable_pthreads=OFF
