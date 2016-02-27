@@ -64,6 +64,10 @@ IF(NOT PLOG_FOUND)
     INSTALL_COMMAND ""
     LOG_DOWNLOAD 1)
 
+  # Retrieve the property for the include files
+  EXTERNALPROJECT_GET_PROPERTY(${PLOG_LIBRARY_NAME} SOURCE_DIR)
+  SET(PLOG_INCLUDE_DIR ${SOURCE_DIR}/include)
+
   # Indicate Plog has been included
   SET(PLOG_FOUND ON CACHE BOOL "Plog Found" FORCE)
 
@@ -74,8 +78,6 @@ ENDIF(NOT PLOG_FOUND)
 ##
 # Update the include directory to use Plog
 ##
-EXTERNALPROJECT_GET_PROPERTY(${PLOG_LIBRARY_NAME} SOURCE_DIR)
-SET(PLOG_INCLUDE_DIR ${SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${PLOG_INCLUDE_DIR})
 
 ##
