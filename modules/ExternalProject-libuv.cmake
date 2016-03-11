@@ -113,7 +113,8 @@ IF(WIN32)
   ENDIF(LIBUV_VERSION VERSION_GREATER "1.6.0" OR LIBUV_VERSION VERSION_EQUAL "1.6.0" OR LIBUV_VERSION MATCHES "master")
 ELSE(WIN32)
   SET(LIBUV_LIBRARIES ${LIBUV_LIBRARIES}
-    pthread)
+    pthread
+    rt)
 ENDIF(WIN32)
 
 # Create build options for the platform build scripts
